@@ -110,7 +110,7 @@ test('full flow: code by mail, verify reveals a receiver, result mailed once, me
   assert.notEqual(res.receiver, 'Kent');
   assert.equal(env.mails.length, 2);
   assert.equal(env.mails[1].to, 'kent@example.com');
-  assert.ok(env.mails[1].htmlBody.includes(res.receiver));
+  assert.ok(env.mails[1].body.includes(res.receiver)); // htmlBody has '&' escaped
 });
 
 test('result mail subject does not spoil the name in a phone notification', () => {
@@ -260,6 +260,24 @@ test('a participant missing from the stored draw gets list_changed', () => {
   const partial = Object.fromEntries(NAMES.filter((n) => n !== 'Kent').map((n, i, arr) => [n, arr[(i + 1) % arr.length]]));
   env.props.set('pairs', Buffer.from(JSON.stringify(partial), 'utf8').toString('base64'));
   assert.equal(login(env, 'Kent', 'kent@example.com').error, 'list_changed');
+});
+
+test('result mail asks people not to reply (a reply would land in the owner\'s inbox)', () => {
+  const env = makeEnv();
+  login(env, 'Kent', 'kent@example.com');
+  const resultMail = env.mails[env.mails.length - 1];
+  assert.match(resultMail.htmlBody, /Ikke svar på denne e-posten/);
+  assert.match(resultMail.body, /Ikke svar på denne e-posten/);
+});
+
+test('a name with a known email can only be claimed with that email', () => {
+  const env = makeEnv();
+  vm.runInContext("KNOWN_EMAILS['Kent'] = 'kent@example.com';", env.ctx);
+  assert.deepEqual(env.ctx.handle({ action: 'requestCode', name: 'Kent', email: 'cousin@example.com' }),
+    { ok: false, error: 'wrong_email' });
+  assert.equal(env.mails.length, 0);
+  assert.equal(login(env, 'Kent', ' KENT@example.com ').ok, true);
+  assert.equal(login(env, 'Malin', 'malin@example.com').ok, true);
 });
 
 test('unknown action is rejected', () => {

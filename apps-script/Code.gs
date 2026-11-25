@@ -15,6 +15,12 @@ const PARTICIPANTS = [
   'Judith', 'Peter', 'Anna', 'Liv', 'Nicke', 'Signe', 'Malte', 'Susanna',
 ];
 
+// Valgfritt: lås et navn til én bestemt e-post, så ingen andre kan ta det.
+// Navn som ikke står her, kan tas av den første som bekrefter med kode.
+// Eksempel: 'Kent': 'kent@gmail.com',
+const KNOWN_EMAILS = {
+};
+
 // Lenken til GitHub-siden (fylles inn når siden er publisert). Brukes i e-postene.
 const SITE_URL = '';
 
@@ -201,6 +207,8 @@ function me_(token) {
 
 /** Returnerer feilkode hvis navnet tilhører en annen e-post eller e-posten et annet navn. */
 function checkOwnership_(p, name, email) {
+  const known = KNOWN_EMAILS[name];
+  if (known && normEmail(known) !== email) return 'wrong_email';
   const owner = p.getProperty('claim:' + name);
   if (owner && owner !== email) return 'name_taken';
   const claimed = p.getProperty('email:' + email);
@@ -283,14 +291,16 @@ function sendResultMail_(email, giver, receiver) {
     '<div style="height:260px"></div>' +
     '<p>Du er Secret Santa for</p>' +
     '<div style="font-size:34px;font-weight:bold;color:#b3122e;margin:14px 0">' + esc_(receiver) + '</div>' +
-    '<p>Hysj! Ikke si det til noen 🤫</p>' + link
+    '<p>Hysj! Ikke si det til noen 🤫</p>' + link +
+    '<p style="font-size:13px;color:#8a6f5a">Ikke svar på denne e-posten, da havner hemmeligheten hos nissene sin sjef.</p>'
   );
   MailApp.sendEmail({
     to: email,
     subject: '🎁 Secret Santa: nissene har trukket et navn til deg!',
     htmlBody: html,
     body: 'Hei ' + giver + '! ' + teaser + '\n\n' + new Array(31).join('🎄\n') + '\n' +
-      'Du er Secret Santa for ' + receiver + '. Hysj! Ikke si det til noen.',
+      'Du er Secret Santa for ' + receiver + '. Hysj! Ikke si det til noen.\n\n' +
+      'Ikke svar på denne e-posten, da havner hemmeligheten hos nissene sin sjef.',
     name: SENDER_NAME,
   });
 }

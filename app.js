@@ -20,6 +20,7 @@
     bad_email: 'Det ser ikke ut som en e-postadresse. Sjekk at den er riktig skrevet.',
     name_taken: 'Dette navnet er allerede tatt med en annen e-post. Si fra til Elin, så fikser hun det.',
     email_used: 'Den e-posten er allerede brukt av noen andre på lista. Bruk din egen e-post.',
+    wrong_email: 'Den e-posten hører ikke til dette navnet. Bruk e-posten Elin har registrert, eller si fra til henne.',
     too_many_codes: 'Nissene har sendt mange koder nå. Vent en stund og prøv igjen.',
     code_expired: 'Koden har gått ut. Trykk «send en ny kode» under.',
     bad_code: 'Feil kode. Sjekk e-posten og prøv igjen.',
@@ -81,12 +82,6 @@
     $$('[data-name]').forEach((el) => { el.textContent = giver; });
   }
 
-  function maskEmail(email) {
-    const [user, domain] = email.split('@');
-    const shown = user.length <= 2 ? user[0] + '•' : user[0] + '•••' + user.slice(-1);
-    return shown + '@' + domain;
-  }
-
   async function openNames() {
     show('name');
     const list = $('#names');
@@ -133,7 +128,7 @@
       () => api({ action: 'requestCode', name: state.name, email }));
     if (!res.ok) return showError('email', res.error);
     state.email = email;
-    $('[data-email]').textContent = maskEmail(email);
+    $('[data-email]').textContent = email;
     $('#code').value = '';
     show('code');
   });
@@ -159,9 +154,17 @@
     }
     localStorage.setItem(TOKEN_KEY, res.token);
     state.result = res;
-    await playCooking();
+    await playCooking().catch(() => {}); // Animasjonen skal aldri stå i veien for navnet.
     showReveal(false);
   });
+
+  $('#change-email').addEventListener('click', () => {
+    $('#email').value = state.email;
+    show('email');
+  });
+
+  $('#show-mine').addEventListener('click', () => showReveal(true));
+  $('#not-me-back').addEventListener('click', logout);
 
   $('#resend').addEventListener('click', async () => {
     const res = await api({ action: 'requestCode', name: state.name, email: state.email });
@@ -176,17 +179,18 @@
       const res = await api({ action: 'names' });
       if (res.ok) state.names = res.names.map((n) => n.name);
     }
-    await playCooking();
+    await playCooking().catch(() => {});
     showReveal(false);
   });
 
-  $('#logout').addEventListener('click', () => {
+  function logout() {
     localStorage.removeItem(TOKEN_KEY);
     state.result = null;
     state.email = '';
     overlay.innerHTML = '';
     show('welcome');
-  });
+  }
+  $('#logout').addEventListener('click', logout);
 
   $('#retry').addEventListener('click', init);
 
@@ -210,13 +214,21 @@
         [3800, 'Litt mer kanel …'], [5200, 'Smaker til …'], [6600, 'Noe dukker opp! ✨']];
     lines.forEach(([at, text]) => setTimeout(() => { $('#status').textContent = text; }, at));
 
-    if (!REDUCED) {
-      dropSlips(state.names.length ? state.names : Array(12).fill('🎁'));
-      setTimeout(() => stage.classList.add('wobble'), 6200);
-      setTimeout(() => { stage.classList.remove('wobble'); riseSlip(state.result.receiver); }, 7000);
+    // Eldre iPhone/iPad (iOS 12) mangler el.animate: da koker nissene uten flygende lapper.
+    const canFly = !REDUCED && typeof overlay.animate === 'function';
+    try {
+      if (canFly) {
+        dropSlips(state.names.length ? state.names : Array(12).fill('🎁'));
+        setTimeout(() => stage.classList.add('wobble'), 6200);
+        setTimeout(() => {
+          stage.classList.remove('wobble');
+          try { riseSlip(state.result.receiver); } catch (err) { /* navnet vises uansett */ }
+        }, 7000);
+      }
+      await sleep(total);
+    } finally {
+      stage.classList.remove('cooking', 'wobble');
     }
-    await sleep(total);
-    stage.classList.remove('cooking', 'wobble');
   }
 
   function potPoint() {
@@ -401,8 +413,11 @@
     show('loading');
     const res = await api({ action: 'me', token });
     if (res.ok) {
+      // Spør først: på et delt nettbrett skal ikke neste person se forrige persons navn.
       state.result = res;
-      return showReveal(true);
+      state.name = res.giver;
+      fillNames(res.giver);
+      return show('back');
     }
     if (res.error === 'bad_token') {
       localStorage.removeItem(TOKEN_KEY);

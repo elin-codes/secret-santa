@@ -150,6 +150,13 @@
         <button class="btn" type="button" id="join">🎄 Bli med i Secret Santa</button>
       </div>
 
+      <div class="screen" data-screen="back" hidden>
+        <h2>Velkommen tilbake!</h2>
+        <p>Du er logget inn som <b data-name></b>.</p>
+        <button class="btn" type="button" id="show-mine">🎁 Vis hvem jeg har trukket</button>
+        <button class="link" type="button" id="not-me-back">Er du ikke <span data-name></span>? Trykk her</button>
+      </div>
+
       <div class="screen" data-screen="name" hidden>
         <h2>Hvem er du?</h2>
         <p class="muted small" id="progress"></p>
@@ -173,7 +180,8 @@
         <p class="error" role="alert"></p>
         <button class="btn" type="submit">🥣 Til grøtgryta!</button>
         <p class="muted small hint">Finner du den ikke? Sjekk søppelposten, eller
-          <button class="link inline" type="button" id="resend">send en ny kode</button>.</p>
+          <button class="link inline" type="button" id="resend">send en ny kode</button>.<br>
+          Feil e-post? <button class="link inline" type="button" id="change-email">Endre den</button>.</p>
       </form>
 
       <div class="screen" data-screen="cooking" hidden>

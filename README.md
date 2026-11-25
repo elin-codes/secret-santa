@@ -7,7 +7,7 @@ være Secret Santa for dukker opp av gryta. Navnet sendes også på e-post.
 - Ingen trekker seg selv, ingen blir trukket to ganger, og ingen to trekker hverandre.
 - Kommer man tilbake, ser man samme navn.
 - Koden går bare til den som eier e-posten, så ingen kan titte på andres.
-- Trekningen ligger skjult i Google-kontoen din, så du kan være med selv.
+- Trekningen ligger skjult i Google-kontoen som eier skriptet. Er du med selv, se steg 0.
 
 Siden ligger på GitHub Pages (gratis). «Hjernen» er et lite Google-skript i din egen
 Google-konto, som husker trekningen og sender e-postene fra Gmailen din (gratis, 100 e-poster per dag).
@@ -20,12 +20,23 @@ Legger du `?demo` bak lenken, får du demoen også etter at alt er satt opp.
 
 ## Oppsett (ca. 10 minutter)
 
+### 0. Hvilken Google-konto? (viktig hvis du er med selv)
+
+E-postene sendes fra kontoen som eier skriptet, og alle 16 resultat-e-postene havner i
+**Sendt**-mappen der. Svarer noen på e-posten, kommer navnet rett i innboksen.
+Er du med i trekningen selv, bør du derfor lage en egen Gmail til nissene, for eksempel
+«Nissens verksted», og gjøre steg 1 med den. Da ser du aldri e-postene, og familien får e-post fra
+nissene i stedet for fra deg.
+
 ### 1. Google-skriptet
 
 1. Gå til <https://script.google.com> og logg inn med Google-kontoen e-postene skal sendes fra.
 2. Trykk **Nytt prosjekt** (New project) og kall det «Secret Santa».
 3. Slett alt i `Code.gs` og lim inn hele innholdet fra [`apps-script/Code.gs`](apps-script/Code.gs).
 4. Fyll inn `SITE_URL` øverst med lenken til GitHub-siden når du har den (valgfritt, gir en lenke i e-posten).
+   Vil du være helt sikker på at ingen tar feil navn, kan du fylle inn e-posten til hver person i
+   `KNOWN_EMAILS`. Da kan navnet bare tas med akkurat den e-posten. Står den tom, tar den første
+   som bekrefter med kode navnet.
 5. Lagre (💾). Velg funksjonen **sjekkOppsett** i nedtrekksmenyen øverst og trykk **Kjør** (Run).
    Google ber om tillatelse til å sende e-post:
    **Gjennomgå tillatelser** → velg kontoen din → «Google har ikke bekreftet denne appen» →
