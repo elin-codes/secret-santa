@@ -280,6 +280,17 @@ test('a name with a known email can only be claimed with that email', () => {
   assert.equal(login(env, 'Malin', 'malin@example.com').ok, true);
 });
 
+test('visTrekningen lists every pair and who has logged in', () => {
+  const env = makeEnv();
+  assert.match(env.ctx.visTrekningen(), /Ingen trekning ennå/);
+  const kent = login(env, 'Kent', 'kent@example.com');
+  const list = env.ctx.visTrekningen();
+  assert.ok(list.includes('Kent → ' + kent.receiver + '  (logget inn: kent@example.com)'));
+  assert.ok(list.includes('Malin → '));
+  assert.match(list, /Malin → .*\(ikke logget inn ennå\)/);
+  assert.equal(list.trim().split('\n').length, NAMES.length);
+});
+
 test('unknown action is rejected', () => {
   const { ctx } = makeEnv();
   assert.deepEqual(ctx.handle({ action: 'hack' }), { ok: false, error: 'unknown_action' });

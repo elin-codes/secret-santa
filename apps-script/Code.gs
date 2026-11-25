@@ -56,6 +56,25 @@ function slippNavn(name) {
   Logger.log('Låste opp: ' + name);
 }
 
+/**
+ * NØDKNAPP: viser hele trekningen (hvem som har hvem, og hvem som har logget inn) i kjøreloggen.
+ * Da ser du også hvem DU har fått, så bruk den bare hvis noe har gått galt.
+ */
+function visTrekningen() {
+  const p = props_();
+  const pairs = readPairs_(p);
+  if (!pairs) {
+    Logger.log('Ingen trekning ennå. Den skjer når første person logger inn.');
+    return 'Ingen trekning ennå.';
+  }
+  const text = PARTICIPANTS.map(function (name) {
+    const email = p.getProperty('claim:' + name);
+    return name + ' → ' + pairs[name] + (email ? '  (logget inn: ' + email + ')' : '  (ikke logget inn ennå)');
+  }).join('\n');
+  Logger.log(text);
+  return text;
+}
+
 /** Sletter ALT: trekningen, alle innlogginger. Bruk bare hvis dere vil starte helt på nytt. */
 function nullstillAlt() {
   props_().deleteAllProperties();
