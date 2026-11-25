@@ -57,7 +57,8 @@ Mormor & Morfar, Malin, Kent, Gabriel, Dina, Anton, Elin, Moa, Judith, Peter, An
 
 ## Mine valg (Elin kan endre)
 - **Ingen e-postliste nødvendig:** hver person velger navnet sitt og skriver sin egen e-post første gang.
-  Koden beviser at e-posten er deres, og navnet låses til den e-posten. Én e-post kan bare låse ett navn.
+  Koden beviser at e-posten er deres, og navnet låses til den e-posten. Samme e-post kan brukes på flere navn
+  (Elin valgte dette, for familiemedlemmer uten egen e-post); den som eier innboksen ser da alle de trekningene.
   Prøver noen et navn som er tatt, får de beskjed om å si fra til Elin, som kan låse det opp i skriptet.
 - **Mormor & Morfar er én deltaker** (de trekker én og får én gave sammen).
 - **Ring-trekning** i stedet for helt tilfeldig, for å unngå at to trekker hverandre.

@@ -189,11 +189,20 @@ test('a claimed name cannot be requested with another email', () => {
     { ok: false, error: 'name_taken' });
 });
 
-test('one email cannot claim a second name', () => {
+test('a shared family email can claim several names, each with its own result mail', () => {
   const env = makeEnv();
-  login(env, 'Kent', 'kent@example.com');
-  assert.deepEqual(env.ctx.handle({ action: 'requestCode', name: 'Malin', email: 'kent@example.com' }),
-    { ok: false, error: 'email_used' });
+  const kent = login(env, 'Kent', 'family@example.com');
+  const malte = login(env, 'Malte', 'family@example.com');
+  assert.equal(kent.ok, true);
+  assert.equal(malte.ok, true);
+  assert.equal(malte.giver, 'Malte');
+  assert.notEqual(kent.token, malte.token);
+  assert.equal(env.ctx.handle({ action: 'me', token: kent.token }).giver, 'Kent');
+  assert.equal(env.ctx.handle({ action: 'me', token: malte.token }).giver, 'Malte');
+  const resultMails = env.mails.filter((m) => m.subject.includes('Secret Santa'));
+  assert.equal(resultMails.length, 2);
+  assert.ok(resultMails[0].body.startsWith('Hei Kent!'));
+  assert.ok(resultMails[1].body.startsWith('Hei Malte!'));
 });
 
 test('unknown name and bad email are rejected without sending mail', () => {

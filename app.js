@@ -19,7 +19,6 @@
     unknown_name: 'Nissene finner ikke det navnet på lista.',
     bad_email: 'Det ser ikke ut som en e-postadresse. Sjekk at den er riktig skrevet.',
     name_taken: 'Dette navnet er allerede tatt med en annen e-post. Si fra til Elin, så fikser hun det.',
-    email_used: 'Den e-posten er allerede brukt av noen andre på lista. Bruk din egen e-post.',
     wrong_email: 'Den e-posten hører ikke til dette navnet. Bruk e-posten Elin har registrert, eller si fra til henne.',
     too_many_codes: 'Nissene har sendt mange koder nå. Vent en stund og prøv igjen.',
     code_expired: 'Koden har gått ut. Trykk «send en ny kode» under.',

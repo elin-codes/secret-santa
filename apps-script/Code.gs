@@ -45,8 +45,6 @@ function slippEtNavn() {
 /** Låser opp et navn slik at riktig person kan logge inn. Trekningen beholdes. */
 function slippNavn(name) {
   const p = props_();
-  const email = p.getProperty('claim:' + name);
-  if (email) p.deleteProperty('email:' + email);
   p.deleteProperty('claim:' + name);
   p.deleteProperty('mailed:' + name);
   const all = p.getProperties();
@@ -198,7 +196,6 @@ function verify_(name, email, code) {
     if (!receiver) return fail_('list_changed');
 
     p.setProperty('claim:' + name, email);
-    p.setProperty('email:' + email, name);
     const token = Utilities.getUuid();
     p.setProperty('token:' + token, name);
 
@@ -224,14 +221,15 @@ function me_(token) {
   return { ok: true, giver: name, receiver: pairs[name] };
 }
 
-/** Returnerer feilkode hvis navnet tilhører en annen e-post eller e-posten et annet navn. */
+/**
+ * Returnerer feilkode hvis navnet tilhører en annen e-post.
+ * Samme e-post kan brukes på flere navn (for de som deler e-post i familien).
+ */
 function checkOwnership_(p, name, email) {
   const known = KNOWN_EMAILS[name];
   if (known && normEmail(known) !== email) return 'wrong_email';
   const owner = p.getProperty('claim:' + name);
   if (owner && owner !== email) return 'name_taken';
-  const claimed = p.getProperty('email:' + email);
-  if (claimed && claimed !== name) return 'email_used';
   return null;
 }
 
