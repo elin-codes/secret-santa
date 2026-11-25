@@ -33,7 +33,7 @@ nissene i stedet for fra deg.
 1. Gå til <https://script.google.com> og logg inn med Google-kontoen e-postene skal sendes fra.
 2. Trykk **Nytt prosjekt** (New project) og kall det «Secret Santa».
 3. Slett alt i `Code.gs` og lim inn hele innholdet fra [`apps-script/Code.gs`](apps-script/Code.gs).
-4. Fyll inn `SITE_URL` øverst med lenken til GitHub-siden når du har den (valgfritt, gir en lenke i e-posten).
+4. `SITE_URL` øverst er allerede fylt inn med lenken til siden (<https://elin-codes.github.io/secret-santa/>).
    Vil du være helt sikker på at ingen tar feil navn, kan du fylle inn e-posten til hver person i
    `KNOWN_EMAILS`. Da kan navnet bare tas med akkurat den e-posten. Står den tom, tar den første
    som bekrefter med kode navnet.

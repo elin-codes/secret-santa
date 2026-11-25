@@ -22,7 +22,7 @@ const KNOWN_EMAILS = {
 };
 
 // Lenken til GitHub-siden (fylles inn når siden er publisert). Brukes i e-postene.
-const SITE_URL = '';
+const SITE_URL = 'https://elin-codes.github.io/secret-santa/';
 
 const SENDER_NAME = 'Nissens verksted';
 
