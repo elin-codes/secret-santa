@@ -233,9 +233,6 @@ h1 {
 .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--red-dark), 0 4px 8px rgba(143, 11, 33, .3); }
 .btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
 .btn[disabled] { opacity: .75; cursor: progress; transform: none; }
-.btn-soft { background: var(--green); font-size: 17px; box-shadow: 0 5px 0 var(--green-dark), 0 10px 18px rgba(18, 61, 39, .3); }
-.btn-soft:hover { box-shadow: 0 7px 0 var(--green-dark), 0 12px 20px rgba(18, 61, 39, .3); }
-.btn-soft:active { box-shadow: 0 2px 0 var(--green-dark); }
 
 .link {
   appearance: none;

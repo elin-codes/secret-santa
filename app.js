@@ -174,15 +174,6 @@
     toast('📬 Ny kode er sendt', 'Sjekk innboksen igjen.');
   });
 
-  $('#replay').addEventListener('click', async () => {
-    if (!state.names.length) {
-      const res = await api({ action: 'names' });
-      if (res.ok) state.names = res.names.map((n) => n.name);
-    }
-    await playCooking().catch(() => {});
-    showReveal(false);
-  });
-
   function logout() {
     localStorage.removeItem(TOKEN_KEY);
     state.result = null;
@@ -190,7 +181,6 @@
     overlay.innerHTML = '';
     show('welcome');
   }
-  $('#logout').addEventListener('click', logout);
 
   $('#retry').addEventListener('click', init);
 
@@ -429,6 +419,8 @@
 
   if (DEMO) {
     $('#demo-banner').hidden = false;
+    $('#email-note').textContent = 'Dette er bare en demo, så ingen e-post er sendt. '
+      + 'Når siden er koblet til Google, kommer navnet også på e-post.';
     $('#demo-reset').addEventListener('click', async () => {
       fakeBackend = fakeBackend || window.createFakeBackend(showDemoMail);
       (await fakeBackend).reset();
