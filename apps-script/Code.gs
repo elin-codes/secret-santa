@@ -12,7 +12,7 @@
 
 const PARTICIPANTS = [
   'Mormor & Morfar', 'Malin', 'Kent', 'Gabriel', 'Dina', 'Anton', 'Elin', 'Moa',
-  'Judith', 'Peter', 'Anna', 'Liv', 'Nicke', 'Signe', 'Malte', 'Susanna',
+  'Judith', 'Peter', 'Anna', 'Liv', 'Nicke', 'Signe', 'Malte', 'Susanna', 'Elin S',
 ];
 
 // Valgfritt: lås et navn til én bestemt e-post, så ingen andre kan ta det.
@@ -67,6 +67,7 @@ function visTrekningen() {
   }
   const text = PARTICIPANTS.map(function (name) {
     const email = p.getProperty('claim:' + name);
+    if (!pairs[name]) return name + ' → (ny, kommer med i trekningen når noen logger inn)';
     return name + ' → ' + pairs[name] + (email ? '  (logget inn: ' + email + ')' : '  (ikke logget inn ennå)');
   }).join('\n');
   Logger.log(text);
@@ -236,10 +237,39 @@ function checkOwnership_(p, name, email) {
 /** Leser trekningen, eller trekker for første gang. Kalles bare med låsen holdt. */
 function getPairs_(p) {
   const existing = readPairs_(p);
-  if (existing) return existing;
+  if (existing) return addNewcomers_(p, existing);
   const ring = makeRing(PARTICIPANTS, Math.random);
-  p.setProperty('pairs', Utilities.base64Encode(JSON.stringify(ring), Utilities.Charset.UTF_8));
+  savePairs_(p, ring);
   return ring;
+}
+
+/**
+ * Nye navn i PARTICIPANTS etter at trekningen er gjort, flettes inn i ringen:
+ * en giver (helst en som ikke har trukket ennå) gir nå til den nye, og den nye
+ * gir til giverens gamle mottaker. Ingen andre får nytt navn.
+ * Har alle trukket, får giveren som byttes en e-post med det nye navnet.
+ */
+function addNewcomers_(p, pairs) {
+  const missing = PARTICIPANTS.filter(function (name) { return !pairs[name]; });
+  if (!missing.length) return pairs;
+  missing.forEach(function (newcomer) {
+    const givers = Object.keys(pairs).filter(function (name) { return PARTICIPANTS.indexOf(name) !== -1; });
+    const fresh = givers.filter(function (name) {
+      return !p.getProperty('claim:' + name) && !p.getProperty('mailed:' + name);
+    });
+    const pool = fresh.length ? fresh : givers;
+    const giver = pool[Math.floor(Math.random() * pool.length)];
+    pairs[newcomer] = pairs[giver];
+    pairs[giver] = newcomer;
+    const email = p.getProperty('claim:' + giver);
+    if (!fresh.length && email) sendUpdateMail_(email, giver, newcomer);
+  });
+  savePairs_(p, pairs);
+  return pairs;
+}
+
+function savePairs_(p, pairs) {
+  p.setProperty('pairs', Utilities.base64Encode(JSON.stringify(pairs), Utilities.Charset.UTF_8));
 }
 
 function readPairs_(p) {
@@ -288,6 +318,29 @@ function sendCodeMail_(email, name, code) {
     subject: '🎅 Nissekoden din: ' + code,
     htmlBody: html,
     body: 'Hei ' + name + '! Nissekoden din er ' + code + '. Den virker i 10 minutter.',
+    name: SENDER_NAME,
+  });
+}
+
+function sendUpdateMail_(email, giver, receiver) {
+  const html = mailCard_(
+    '<div style="font-size:44px">🔔</div>' +
+    '<h2 style="margin:8px 0 4px;color:#1d5c3a">Hei ' + esc_(giver) + '!</h2>' +
+    '<p>Det har kommet en ny person med i Secret Santa, og nissene har måttet bytte om litt.</p>' +
+    '<p style="color:#8a6f5a;font-size:14px">Bla ned for å se hvem du skal gi til nå ⬇️</p>' +
+    '<div style="height:260px"></div>' +
+    '<p>Du er nå Secret Santa for</p>' +
+    '<div style="font-size:34px;font-weight:bold;color:#b3122e;margin:14px 0">' + esc_(receiver) + '</div>' +
+    '<p>Det gamle navnet gjelder ikke lenger. Hysj! 🤫</p>' +
+    '<p style="font-size:13px;color:#8a6f5a">Ikke svar på denne e-posten, da havner hemmeligheten hos nissene sin sjef.</p>'
+  );
+  MailApp.sendEmail({
+    to: email,
+    subject: '🔔 Oppdatering fra nissene: nytt Secret Santa-navn til deg',
+    htmlBody: html,
+    body: 'Hei ' + giver + '! Det har kommet en ny person med, og nissene har byttet om litt.\n\n' +
+      new Array(31).join('🎄\n') + '\nDu er nå Secret Santa for ' + receiver + '. Det gamle navnet gjelder ikke lenger.\n\n' +
+      'Ikke svar på denne e-posten, da havner hemmeligheten hos nissene sin sjef.',
     name: SENDER_NAME,
   });
 }

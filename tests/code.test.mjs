@@ -9,7 +9,7 @@ import crypto from 'node:crypto';
 const SRC = fs.readFileSync(new URL('../apps-script/Code.gs', import.meta.url), 'utf8');
 
 const NAMES = ['Mormor & Morfar', 'Malin', 'Kent', 'Gabriel', 'Dina', 'Anton', 'Elin', 'Moa',
-  'Judith', 'Peter', 'Anna', 'Liv', 'Nicke', 'Signe', 'Malte', 'Susanna'];
+  'Judith', 'Peter', 'Anna', 'Liv', 'Nicke', 'Signe', 'Malte', 'Susanna', 'Elin S'];
 
 function makeEnv() {
   const props = new Map();
@@ -90,7 +90,7 @@ test('makeRing: everyone gives once, receives once, never self, never mutual', (
   }
 });
 
-test('names: lists all 16 participants, none taken', () => {
+test('names: lists all participants, none taken', () => {
   const { ctx } = makeEnv();
   const res = ctx.handle({ action: 'names' });
   assert.equal(res.ok, true);
@@ -264,11 +264,51 @@ test('slippNavn frees the name, kills its tokens and lets the real owner in', ()
   assert.ok(env.mails[env.mails.length - 1].subject.includes('Secret Santa'));
 });
 
-test('a participant missing from the stored draw gets list_changed', () => {
+const readRing = (env) => JSON.parse(Buffer.from(env.props.get('pairs'), 'base64').toString('utf8'));
+const slug = (name) => name.toLowerCase().replace(/[^a-z]/g, '') + '@example.com';
+
+function assertSingleRing(ring, names) {
+  assert.deepEqual(Object.keys(ring).sort(), [...names].sort());
+  assert.deepEqual(Object.values(ring).sort(), [...names].sort());
+  const seen = new Set();
+  let cur = names[0];
+  do {
+    assert.notEqual(ring[cur], cur);
+    seen.add(cur);
+    cur = ring[cur];
+  } while (cur !== names[0] && seen.size <= names.length);
+  assert.equal(seen.size, names.length);
+}
+
+test('a newcomer added after the draw is slotted in without changing anyone who already drew', () => {
   const env = makeEnv();
-  const partial = Object.fromEntries(NAMES.filter((n) => n !== 'Kent').map((n, i, arr) => [n, arr[(i + 1) % arr.length]]));
-  env.props.set('pairs', Buffer.from(JSON.stringify(partial), 'utf8').toString('base64'));
-  assert.equal(login(env, 'Kent', 'kent@example.com').error, 'list_changed');
+  const drawn = ['Kent', 'Malin', 'Anton'].map((n) => [n, login(env, n, slug(n))]);
+  vm.runInContext("PARTICIPANTS.push('Nisse-Nils');", env.ctx);
+  const nils = login(env, 'Nisse-Nils', 'nils@example.com');
+  assert.equal(nils.ok, true);
+  assert.notEqual(nils.receiver, 'Nisse-Nils');
+  for (const [, res] of drawn) {
+    assert.equal(env.ctx.handle({ action: 'me', token: res.token }).receiver, res.receiver);
+  }
+  assertSingleRing(readRing(env), [...NAMES, 'Nisse-Nils']);
+  assert.ok(!env.mails.some((m) => /Oppdatering/.test(m.subject)));
+});
+
+test('if everyone has drawn, the newcomer still gets in and the one changed giver gets an update mail', () => {
+  const env = makeEnv();
+  const before = Object.fromEntries(NAMES.map((n) => [n, login(env, n, slug(n))]));
+  vm.runInContext("PARTICIPANTS.push('Nisse-Nils');", env.ctx);
+  const mailsBefore = env.mails.length;
+  assert.equal(login(env, 'Nisse-Nils', 'nils@example.com').ok, true);
+  const changed = NAMES.filter((n) => env.ctx.handle({ action: 'me', token: before[n].token }).receiver !== before[n].receiver);
+  assert.equal(changed.length, 1);
+  assert.equal(env.ctx.handle({ action: 'me', token: before[changed[0]].token }).receiver, 'Nisse-Nils');
+  const updates = env.mails.slice(mailsBefore).filter((m) => /Oppdatering/.test(m.subject));
+  assert.equal(updates.length, 1);
+  assert.equal(updates[0].to, slug(changed[0]));
+  assert.ok(!updates[0].subject.includes('Nisse-Nils'));
+  assert.ok(updates[0].body.includes('Nisse-Nils'));
+  assertSingleRing(readRing(env), [...NAMES, 'Nisse-Nils']);
 });
 
 test('result mail asks people not to reply (a reply would land in the owner\'s inbox)', () => {

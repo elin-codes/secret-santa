@@ -77,7 +77,8 @@ Alle hjelpefunksjonene kjøres fra Google-skriptet: velg funksjonen øverst og t
 |---|---|
 | Noen har tatt feil navn | Skriv navnet inn i `slippEtNavn` (bytt ut `SKRIV NAVNET HER`) og kjør den. Den rette personen kan logge inn igjen, og trekningen er den samme. |
 | Noen fikk ikke koden | Be dem sjekke søppelpost. De kan trykke «send en ny kode» (maks 5 i timen). |
-| «Deltakerlista er endret» | Du har endret `PARTICIPANTS` etter at trekningen ble gjort. Kjør `nullstillAlt`, så må alle trekke på nytt. |
+| Noen vil være med etter at trekningen har startet | Skriv navnet inn i `PARTICIPANTS`, lagre og lag en **ny versjon** (se under). Den nye flettes inn i ringen: én som ikke har trukket ennå får den nye i stedet, og ingen som har trukket får nytt navn. Har alle trukket, får den ene som byttes en e-post med det nye navnet. **Ikke** kjør `nullstillAlt`. |
+| «Deltakerlista er endret» | Du har *fjernet* et navn fra `PARTICIPANTS` etter at trekningen ble gjort. Legg navnet tilbake, eller kjør `nullstillAlt` så alle trekker på nytt. |
 | Dere vil starte helt på nytt | Kjør `nullstillAlt`. Alle innlogginger og trekningen slettes. Gamle resultat-e-poster gjelder ikke lenger. |
 | Du må se hvem som har hvem (nødstilfelle) | Kjør `visTrekningen`. Hele lista, og hvem som har logget inn, vises i kjøreloggen. Da ser du også hvem du har fått selv. |
 | Du har endret i `Code.gs` | **Implementer → Administrer implementeringer** → blyanten → Versjon: **Ny versjon** → **Implementer**. Lenken blir den samme. |
